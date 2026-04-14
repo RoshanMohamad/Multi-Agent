@@ -60,7 +60,7 @@ class AttackerAgent:
     """Agent that tries to bypass safety guardrails."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_CREATIVE
@@ -116,7 +116,7 @@ class DefenderAgent:
     """Agent that detects attacks and suggests patches."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_ANALYTICAL

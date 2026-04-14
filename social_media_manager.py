@@ -66,7 +66,7 @@ class ContentCreatorAgent:
     """Creates engaging social media captions."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_CREATIVE
@@ -114,7 +114,7 @@ class ImageDescriberAgent:
     """Describes what image should be created (simulates image generation)."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_CREATIVE
@@ -157,7 +157,7 @@ class BrandGuardianAgent:
     """Ensures brand consistency and appropriateness."""
     
     def __init__(self, brand_guidelines: dict):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_ANALYTICAL
@@ -206,7 +206,7 @@ class SchedulerAgent:
     """Determines optimal posting time."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_ANALYTICAL

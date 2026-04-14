@@ -56,7 +56,7 @@ class CoderAgent:
     """Agent responsible for writing code."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_ANALYTICAL
@@ -97,7 +97,7 @@ class ReviewerAgent:
     """Agent responsible for reviewing and testing code."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_ANALYTICAL

@@ -65,10 +65,13 @@ def main():
     while True:
         print_menu()
         choice = input(f"{Fore.CYAN}Select option (1-2): {Style.RESET_ALL}").strip()
-        
         if choice == "1":
             run_red_teaming()
         elif choice == "2":
+            social_engineering_bot()
+        elif choice == "3":
+            software_engineer_bot()
+        elif choice == "4":
             print(f"\n{Fore.GREEN}Goodbye!{Style.RESET_ALL}\n")
             sys.exit(0)
         else:

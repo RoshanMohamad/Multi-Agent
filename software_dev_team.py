@@ -7,7 +7,7 @@ This system simulates a software development team with three agents:
 - Reviewer: Tests and reviews the code, sends feedback
 """
 
-from langchain_community.llms import Ollama
+from langchain_ollama import OllamaLLM
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from colorama import Fore
@@ -19,7 +19,7 @@ class ManagerAgent:
     """Agent responsible for breaking down feature requests into tasks."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_ANALYTICAL

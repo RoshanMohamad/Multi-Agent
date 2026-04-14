@@ -9,7 +9,7 @@ This system automates social media content creation with multiple agents:
 - Scheduler: Determines optimal posting time
 """
 
-from langchain_community.llms import Ollama
+from langchain_ollama import OllamaLLM
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from colorama import Fore
@@ -22,7 +22,7 @@ class TrendMonitorAgent:
     """Monitors and identifies trending topics."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_CREATIVE

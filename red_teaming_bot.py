@@ -6,7 +6,7 @@ This system simulates an adversarial setup where:
 - Defender: Detects attacks and patches vulnerabilities
 """
 
-from langchain_community.llms import Ollama
+from langchain_ollama import OllamaLLM
 from langchain_core.prompts import PromptTemplate
 from colorama import Fore
 import config
@@ -17,7 +17,7 @@ class TargetAgent:
     """The AI system being tested with safety guardrails."""
     
     def __init__(self):
-        self.llm = Ollama(
+        self.llm = OllamaLLM(
             base_url=config.OLLAMA_BASE_URL,
             model=config.OLLAMA_MODEL,
             temperature=config.TEMPERATURE_BALANCED

@@ -10,8 +10,7 @@ This system automates social media content creation with multiple agents:
 """
 
 from langchain_ollama import OllamaLLM
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+from langchain_core.prompts import PromptTemplate
 from colorama import Fore
 from datetime import datetime, timedelta
 import config
@@ -49,14 +48,14 @@ For each trend, provide:
 Format as a numbered list."""
         )
         
-        self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
+        self.chain = self.prompt | self.llm
     
     def find_trends(self, industry: str) -> str:
         """Identify trending topics for an industry."""
         print_agent_message("Trend Monitor Agent", f"Analyzing trends for {industry}...", Fore.MAGENTA)
         
         current_date = datetime.now().strftime("%B %d, %Y")
-        trends = self.chain.run(industry=industry, current_date=current_date)
+        trends = self.chain.invoke({"industry": industry, "current_date": current_date})
         
         print_agent_message("Trend Monitor Agent", f"Trending topics:\n{trends}", Fore.MAGENTA)
         return trends
@@ -91,7 +90,7 @@ Create an engaging social media post that:
 Keep it concise and platform-appropriate (280 chars for Twitter, longer for Instagram/LinkedIn)."""
         )
         
-        self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
+        self.chain = self.prompt | self.llm
     
     def create_caption(self, trend: str, brand_voice: str, platform: str, feedback: str = "") -> str:
         """Create a social media caption."""
@@ -99,12 +98,12 @@ Keep it concise and platform-appropriate (280 chars for Twitter, longer for Inst
         
         feedback_text = f"Brand Guardian Feedback:\n{feedback}\nPlease revise accordingly." if feedback else ""
         
-        caption = self.chain.run(
-            trend=trend,
-            brand_voice=brand_voice,
-            platform=platform,
-            feedback=feedback_text if feedback_text else "First draft - no feedback yet."
-        )
+        caption = self.chain.invoke({
+            "trend": trend,
+            "brand_voice": brand_voice,
+            "platform": platform,
+            "feedback": feedback_text if feedback_text else "First draft - no feedback yet."
+        })
         
         print_agent_message("Content Creator Agent", f"Caption:\n{caption}", Fore.BLUE)
         return caption
@@ -139,13 +138,13 @@ Create a detailed image generation prompt that:
 Provide ONLY the image prompt, ready to use."""
         )
         
-        self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
+        self.chain = self.prompt | self.llm
     
     def describe_image(self, caption: str, trend: str) -> str:
         """Create an image generation prompt."""
         print_agent_message("Image Describer Agent", "Creating image prompt...", Fore.YELLOW)
         
-        image_prompt = self.chain.run(caption=caption, trend=trend)
+        image_prompt = self.chain.invoke({"caption": caption, "trend": trend})
         
         print_agent_message("Image Describer Agent", 
                           f"Image prompt:\n{image_prompt}\n\n[In production, this would be sent to DALL-E/Midjourney]", 
@@ -186,7 +185,7 @@ If compliant, respond with "APPROVED: [brief reason]"
 If not compliant, respond with "REJECTED: [specific issues and suggestions]" """
         )
         
-        self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
+        self.chain = self.prompt | self.llm
     
     def review_content(self, caption: str) -> tuple[bool, str]:
         """Review content for brand compliance."""
@@ -194,7 +193,7 @@ If not compliant, respond with "REJECTED: [specific issues and suggestions]" """
         
         guidelines_text = "\n".join(f"- {k}: {v}" for k, v in self.brand_guidelines.items())
         
-        review = self.chain.run(caption=caption, guidelines=guidelines_text)
+        review = self.chain.invoke({"caption": caption, "guidelines": guidelines_text})
         
         approved = "APPROVED" in review.upper()
         
@@ -232,7 +231,7 @@ Provide:
 3. Alternative time if primary slot is not available"""
         )
         
-        self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
+        self.chain = self.prompt | self.llm
     
     def schedule_post(self, platform: str, target_audience: str) -> str:
         """Determine optimal posting time."""
@@ -240,11 +239,11 @@ Provide:
         
         current_time = datetime.now().strftime("%A, %B %d, %Y at %I:%M %p")
         
-        schedule = self.chain.run(
-            platform=platform,
-            target_audience=target_audience,
-            current_time=current_time
-        )
+        schedule = self.chain.invoke({
+            "platform": platform,
+            "target_audience": target_audience,
+            "current_time": current_time
+        })
         
         print_agent_message("Scheduler Agent", f"Schedule recommendation:\n{schedule}", Fore.GREEN)
         return schedule

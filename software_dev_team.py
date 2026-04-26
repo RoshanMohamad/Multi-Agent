@@ -8,8 +8,7 @@ This system simulates a software development team with three agents:
 """
 
 from langchain_ollama import OllamaLLM
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+from langchain_core.prompts import PromptTemplate
 from colorama import Fore
 import config
 from utils import print_agent_message, print_section
@@ -39,7 +38,7 @@ Break this down into 3-5 specific tasks. For each task, provide:
 Format your response as a numbered list. Be concise and specific."""
         )
         
-        self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
+        self.chain = self.prompt | self.llm
     
     def create_tasks(self, feature_request: str) -> str:
         """Break down a feature request into tasks."""
@@ -47,7 +46,7 @@ Format your response as a numbered list. Be concise and specific."""
                           f"Analyzing feature request: {feature_request}", 
                           Fore.MAGENTA)
         
-        tasks = self.chain.run(feature_request=feature_request)
+        tasks = self.chain.invoke({"feature_request": feature_request})
         print_agent_message("Manager Agent", f"Tasks created:\n{tasks}", Fore.MAGENTA)
         return tasks
 
@@ -80,7 +79,7 @@ Write Python code to implement these tasks. Include:
 Provide ONLY the code, well-formatted and ready to use."""
         )
         
-        self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
+        self.chain = self.prompt | self.llm
     
     def write_code(self, tasks: str, feedback: str = "") -> str:
         """Write code based on tasks and optional feedback."""
@@ -88,7 +87,7 @@ Provide ONLY the code, well-formatted and ready to use."""
         
         print_agent_message("Coder Agent", "Writing code...", Fore.BLUE)
         
-        code = self.chain.run(tasks=tasks, feedback=feedback_text)
+        code = self.chain.invoke({"tasks": tasks, "feedback": feedback_text})
         print_agent_message("Coder Agent", f"Code implementation:\n{code}", Fore.BLUE)
         return code
 
@@ -122,13 +121,13 @@ Provide a review that includes:
 If the code is good, say "APPROVED". If it needs changes, list specific issues to fix."""
         )
         
-        self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
+        self.chain = self.prompt | self.llm
     
     def review_code(self, code: str, tasks: str) -> tuple[bool, str]:
         """Review code and return (approved, feedback)."""
         print_agent_message("Reviewer Agent", "Reviewing code...", Fore.GREEN)
         
-        review = self.chain.run(code=code, tasks=tasks)
+        review = self.chain.invoke({"code": code, "tasks": tasks})
         print_agent_message("Reviewer Agent", f"Review:\n{review}", Fore.GREEN)
         
         approved = "APPROVED" in review.upper()

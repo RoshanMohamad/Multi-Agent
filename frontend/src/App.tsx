@@ -5,7 +5,7 @@ import {
   MessageSquare, TerminalSquare, Share2, Wifi, WifiOff, Square,
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // ── Agent definitions ─────────────────────────────────────────────────────────
 const AGENTS = [
@@ -91,6 +91,22 @@ function ChatApp({ username, onLogout }: { username: string; onLogout: () => voi
     return () => clearInterval(id);
   }, []);
 
+  // ── fetch history ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/chat/history?agent_id=${selectedAgent}&username=${encodeURIComponent(username)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setMessages(data.history);
+        }
+      } catch (err) {
+        console.error("Failed to load history", err);
+      }
+    };
+    loadHistory();
+  }, [selectedAgent, username]);
+
   // ── auto-scroll ──────────────────────────────────────────────────────────────
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -113,7 +129,7 @@ function ChatApp({ username, onLogout }: { username: string; onLogout: () => voi
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agent: selectedAgent, message: userMsg }),
+        body: JSON.stringify({ username, agent: selectedAgent, message: userMsg }),
         signal: controller.signal,
       });
 

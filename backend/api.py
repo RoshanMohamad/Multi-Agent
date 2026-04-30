@@ -1,10 +1,14 @@
 import asyncio
 import json
+import os
 from typing import AsyncGenerator
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi import Depends
+from sqlalchemy.orm import Session
+from database import get_db, ChatLog
 
 # Import agents
 from red_teaming_bot import RedTeamingSystem
@@ -14,15 +18,19 @@ from software_dev_team import SoftwareDevTeam
 app = FastAPI()
 
 # Enable CORS for the React frontend
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+origins = [frontend_url] if frontend_url != "*" else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify the actual frontend URL
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 class ChatRequest(BaseModel):
+    username: str = "anonymous"
     agent: str
     message: str
 
@@ -40,8 +48,23 @@ async def mock_streaming_response(text: str) -> AsyncGenerator[str, None]:
         yield f"data: {json.dumps({'text': chunk})}\n\n"
         await asyncio.sleep(0.05)
 
+@app.get("/api/chat/history")
+async def get_chat_history(agent_id: str, username: str, db: Session = Depends(get_db)):
+    logs = db.query(ChatLog).filter(
+        ChatLog.agent_id == agent_id,
+        ChatLog.username == username
+    ).order_by(ChatLog.created_at.asc()).all()
+    
+    history = []
+    for log in logs:
+        history.append({"role": "user", "content": log.user_message})
+        history.append({"role": "bot", "content": log.bot_response})
+        
+    return {"history": history}
+
 @app.post("/api/chat")
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, db: Session = Depends(get_db)):
+    username = request.username
     agent_id = request.agent
     message = request.message
     
@@ -88,6 +111,19 @@ async def chat(request: ChatRequest):
         else:
             response = "Unknown agent selected."
             
+        # Log conversation to Database (Ready for RDS)
+        try:
+            log_entry = ChatLog(
+                username=username,
+                agent_id=agent_id,
+                user_message=message,
+                bot_response=response
+            )
+            db.add(log_entry)
+            db.commit()
+        except Exception as db_err:
+            print(f"Error logging to DB: {db_err}")
+            
         return StreamingResponse(mock_streaming_response(response), media_type="text/event-stream")
         
     except Exception as e:
@@ -98,4 +134,10 @@ async def chat(request: ChatRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 8000))
+    
+    # Note: In production, it is recommended to run via a proper process manager like gunicorn:
+    # gunicorn -k uvicorn.workers.UvicornWorker api:app -w 4 -b 0.0.0.0:8000
+    uvicorn.run(app, host=host, port=port)
